@@ -27,7 +27,7 @@ fun MainScreen(viewModel: MainViewModel = koinViewModel()) {
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(lazyColumnItemsGap)
         ) {
-            items(items.size, key = { items[it].c ?: it }) { index ->
+            items(items.size) { index ->
                 LazyListItem(items[index])
             }
         }

@@ -1,5 +1,6 @@
 package com.example.tradernet
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.entity.Quotes
@@ -8,6 +9,7 @@ import com.example.domain.entity.copyWith
 import com.example.domain.repository.QuotesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,7 +19,7 @@ class MainViewModel(private val repository: QuotesRepository) : ViewModel() {
     private val _mainScreenState = MutableStateFlow<List<Quotes>>(emptyList())
 
     val mainScreenState: StateFlow<List<Quotes>>
-        get() = _mainScreenState
+        get() = _mainScreenState.asStateFlow()
 
     init {
         getQuotes()
@@ -25,13 +27,13 @@ class MainViewModel(private val repository: QuotesRepository) : ViewModel() {
 
     private fun getQuotes() {
         viewModelScope.launch {
-            val request = EventRequest(Requests.REALTIME_QUOTES(), Tickers.getAll())
+            val request = EventRequest(Requests.REALTIME_QUOTES(), /*listOf(Tickers.FTSE_IDX())*/Tickers.getAll())
             repository.fetchQuotes(request.toString())
                 .catch { it.printStackTrace() }
                 .collect {
                     when (it) {
-                        is QuotesState.Connected -> {}
-                        is QuotesState.Disconnected -> {}
+                        is QuotesState.Connected -> { Log.println(Log.DEBUG, "SocketClient", "QuotesState.Connected!!!!!!!!!!!!!!!!!!!") }
+                        is QuotesState.Disconnected -> { Log.println(Log.DEBUG, "SocketClient", "QuotesState.Disconnected!!!!!!!!!!!!!!!!!!!") }
                         is QuotesState.Message -> {
                             val quotes = it.message
 
@@ -45,7 +47,9 @@ class MainViewModel(private val repository: QuotesRepository) : ViewModel() {
                                     }
                                 } else {
                                     list.toMutableList()
-                                        .apply { set(index, list[index].copyWith(quotes)) }
+                                        .apply { set(index, list[index]
+                                            .copyWith(quotes)
+                                            .also { /*println(it)*/}) }
                                 }
                             }
                         }

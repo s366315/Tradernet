@@ -38,7 +38,10 @@ enum class Tickers(private val symbol: String) {
     TATE_EU("TATE.EU"),
     KGF_EU("KGF.EU"),
     MGGT_EU("MGGT.EU"),
-    SGGD_EU("SGGD.EU");
+    SGGD_EU("SGGD.EU"),
+    DAX_IDX("DAX.IDX"),
+    NASDAQ_IDX("NASDAQ.IDX"),
+    FTSE_IDX("FTSE.IDX");
 
     operator fun invoke() = symbol
 

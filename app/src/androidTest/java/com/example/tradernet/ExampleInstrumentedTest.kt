@@ -1,6 +1,8 @@
 package com.example.tradernet
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.domain.ext.orZero
+import com.example.domain.ext.roundTo
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,5 +30,19 @@ class ExampleInstrumentedTest {
     @Test
     fun testTickers() {
         assertEquals(Tickers.ANH_US(), "ANH.US")
+    }
+
+    @Test
+    fun testRound() {
+        val minStep = 0.01
+        val num = 0.0
+        val result = num.roundTo(minStep)
+
+        assertEquals(result, 184.20.toString())
+    }
+
+    @Test
+    fun testDoubleZero() {
+        assert(158.0.orZero() > 0)
     }
 }
