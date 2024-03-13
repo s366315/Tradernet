@@ -3,17 +3,25 @@ package com.example.data.repository
 import com.example.data.BuildConfig
 import com.example.data.entity.SocketState
 import com.example.data.mapper.map
+import com.example.data.request.EventRequest
+import com.example.data.request.GetTopSecuritiesRequest
 import com.example.data.response.QuotesResponse
+import com.example.data.service.ApiService
 import com.example.data.service.SocketClient
 import com.example.domain.entity.Quotes
 import com.example.domain.entity.QuotesState
 import com.example.domain.repository.QuotesRepository
+import com.example.domain.request.Requests
+import com.example.domain.request.Tickers
 import com.google.gson.Gson
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.json.JSONArray
 
-class QuotesRepositoryImpl(private val socketClient: SocketClient) : QuotesRepository {
+class QuotesRepositoryImpl(private val socketClient: SocketClient, private val api: ApiService) :
+    QuotesRepository {
 
     private companion object {
         const val EVENT_ELEMENT_INDEX = 0
@@ -22,7 +30,23 @@ class QuotesRepositoryImpl(private val socketClient: SocketClient) : QuotesRepos
         const val LOGO_URL = BuildConfig.IMAGE_URL
     }
 
-    override suspend fun fetchQuotes(event: String?): Flow<QuotesState> = callbackFlow {
+    override suspend fun fetchQuotes(): Flow<QuotesState> = callbackFlow {
+
+        val event = async {
+            api.getTopSecurities(query = GetTopSecuritiesRequest())
+        }
+            .await()
+            .getOrNull()
+            ?.tickers
+            ?.let {
+                EventRequest(eventName = Requests.REALTIME_QUOTES(), tickers = it).toString()
+            }
+            ?: EventRequest(
+                eventName = Requests.REALTIME_QUOTES(),
+                tickers = Tickers.getAll()
+            ).toString()
+
+
         socketClient.collect(event) {
             val messageState: QuotesState = when (it) {
                 is SocketState.Connected -> QuotesState.Connected
@@ -31,6 +55,11 @@ class QuotesRepositoryImpl(private val socketClient: SocketClient) : QuotesRepos
             }
 
             trySend(messageState)
+        }
+
+        awaitClose {
+            channel.trySend(QuotesState.Disconnected)
+            channel.close()
         }
     }
 
@@ -43,7 +72,7 @@ class QuotesRepositoryImpl(private val socketClient: SocketClient) : QuotesRepos
                 val jsonData = rootElement.getJSONObject(DATA_ELEMENT_INDEX)
                 val quotes = Gson().fromJson(jsonData.toString(), QuotesResponse::class.java)
 
-                 val logoUrl = "$LOGO_URL${quotes.c?.lowercase()}"
+                val logoUrl = "$LOGO_URL${quotes.c?.lowercase()}"
 
                 QuotesState.Message(quotes.map(logoUrl))
             } else QuotesState.Message(Quotes())

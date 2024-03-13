@@ -1,4 +1,4 @@
-package com.example.tradernet
+package com.example.data.request
 
 import org.json.JSONArray
 

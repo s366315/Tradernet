@@ -11,7 +11,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.runBlocking
 
 interface SocketClient {
     suspend fun collect(onEvent: String?, state: (SocketState) -> Unit)
@@ -32,7 +31,7 @@ class SocketClientImpl : SocketClient {
             engine {
                 https {
                     serverName = host
-                    trustManager = MainTrustManager(this)
+                    trustManager = MainTrustManager()
                 }
             }
             install(WebSockets) {
@@ -41,22 +40,21 @@ class SocketClientImpl : SocketClient {
         }
     }
 
-    private val session = runBlocking {
-        client.webSocketSession(method = method, host = host)
-    }
-
     override suspend fun collect(onEvent: String?, state: (SocketState) -> Unit) {
         try {
             client.webSocket(method = method, host = host) {
                 state(SocketState.Connected)
 
-                onEvent?.let{ session.send(Frame.Text(onEvent)) }
+                val session = client.webSocketSession(method = method, host = host)
+
+                onEvent?.let { session.send(Frame.Text(onEvent)) }
 
                 session.incoming.consumeEach {
                     state(SocketState.Message((it as? Frame.Text)?.readText().orEmpty()))
                 }
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             state(SocketState.Disconnected)
         }
     }

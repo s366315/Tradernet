@@ -5,4 +5,6 @@
     <string name="lazy_item_percent">%1$s%2$s%%</string>
     <string name="lazy_item_name">%1$s | %2$s</string>
     <string name="lazy_item_price">%1$s ( %2$s%3$s )</string>
+    <string name="lazy_item_plus">+</string>
+
 </resources>

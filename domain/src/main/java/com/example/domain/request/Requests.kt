@@ -1,4 +1,4 @@
-package com.example.tradernet
+package com.example.domain.request
 
 enum class  Requests(private val event: String) {
     REALTIME_QUOTES("realtimeQuotes");

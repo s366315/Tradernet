@@ -1,13 +1,17 @@
 package com.example.tradernet.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.tradernet.MainViewModel
 import com.example.tradernet.ui.component.LazyListItem
@@ -18,17 +22,28 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MainScreen(viewModel: MainViewModel = koinViewModel()) {
 
-    val items by viewModel.mainScreenState.collectAsState()
+    val state by viewModel.mainScreenState.collectAsState()
 
     Scaffold { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(lazyColumnItemsGap)
+                .fillMaxSize()
         ) {
-            items(items.size) { index ->
-                LazyListItem(items[index])
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(lazyColumnItemsGap)
+            ) {
+                items(count = state.quotes.size, key = { state.quotes[it].c.orEmpty() }) { index ->
+                    LazyListItem(state.quotes[index])
+                }
+            }
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                )
             }
         }
     }

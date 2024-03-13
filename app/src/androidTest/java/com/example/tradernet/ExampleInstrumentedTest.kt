@@ -3,6 +3,8 @@ package com.example.tradernet
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.domain.ext.orZero
 import com.example.domain.ext.roundTo
+import com.example.domain.request.Requests
+import com.example.domain.request.Tickers
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith

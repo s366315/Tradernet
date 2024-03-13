@@ -137,30 +137,21 @@ val constraints = ConstraintSet {
 @Composable
 fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
     val percentBoxAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
-
-    val percentBoxColor =
-        if (item.decreased) red
-        else if (item.increased) green
-        else Color.Transparent
-
-    println("price: ${item.ltp}; diff: ${item.ltpDiffFormatted}; percent: ${item.ltpDiffPercent}; positive: ${item.positive}")
     val textColorState = remember { Animatable(if (item.positive) green else red) }
-
     var priceSignState by remember { mutableStateOf("") }
-    priceSignState = if (item.positive) "+" else ""//todo move to res
+
+    priceSignState = if (item.positive) stringResource(id = R.string.lazy_item_plus) else ""
 
     LaunchedEffect(item) {
-        val textColor = if (item.positive) green else red
-        launch {
-            percentBoxAlpha.animateTo(1f, animationSpec = shortAlphaSpec)
-            percentBoxAlpha.animateTo(0f, animationSpec = mediumAlphaSpec)
-        }
-        launch {
-            if ((item.increased && !item.decreased) || (!item.increased && item.decreased)) {
-
+        if ((item.increased && !item.decreased) || (!item.increased && item.decreased)) {
+            launch {
+                percentBoxAlpha.animateTo(1f, animationSpec = shortAlphaSpec)
+                percentBoxAlpha.animateTo(0f, animationSpec = mediumAlphaSpec)
             }
-            textColorState.animateTo(Color.White, animationSpec = shortColorSpec)
-            textColorState.animateTo(textColor, animationSpec = mediumColorSpec)
+            launch {
+                textColorState.animateTo(Color.White, animationSpec = shortColorSpec)
+                textColorState.animateTo(if (item.positive) green else red, animationSpec = mediumColorSpec)
+            }
         }
     }
 
@@ -216,7 +207,9 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
 
         )
         Text(
-            modifier = modifier.layoutId(percentTextId).padding(horizontal = 5.dp),
+            modifier = modifier
+                .layoutId(percentTextId)
+                .padding(horizontal = 5.dp),
             text = stringResource(
                 id = R.string.lazy_item_percent,
                 priceSignState,

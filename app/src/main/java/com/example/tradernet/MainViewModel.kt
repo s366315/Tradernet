@@ -14,42 +14,84 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+
+data class MainScreenState(
+    val quotes: List<Quotes> = emptyList(),
+    val isConnected: Boolean = false,
+    val isLoading: Boolean = false
+)
+
 class MainViewModel(private val repository: QuotesRepository) : ViewModel() {
 
-    private val _mainScreenState = MutableStateFlow<List<Quotes>>(emptyList())
+    private val _mainScreenState = MutableStateFlow(MainScreenState())
 
-    val mainScreenState: StateFlow<List<Quotes>>
+    val mainScreenState: StateFlow<MainScreenState>
         get() = _mainScreenState.asStateFlow()
 
     init {
         getQuotes()
     }
 
-    private fun getQuotes() {
+    fun getQuotes() {
         viewModelScope.launch {
-            val request = EventRequest(Requests.REALTIME_QUOTES(), /*listOf(Tickers.FTSE_IDX())*/Tickers.getAll())
-            repository.fetchQuotes(request.toString())
-                .catch { it.printStackTrace() }
+
+            _mainScreenState.update { state ->
+                state.copy(isLoading = true)
+            }
+
+            repository.fetchQuotes()
+                .catch {
+                    _mainScreenState.update { state ->
+                        state.copy(isConnected = false, isLoading = false)
+                    }
+                    println("catch in MainViewModel")
+                    it.printStackTrace()
+                }
                 .collect {
                     when (it) {
-                        is QuotesState.Connected -> { Log.println(Log.DEBUG, "SocketClient", "QuotesState.Connected!!!!!!!!!!!!!!!!!!!") }
-                        is QuotesState.Disconnected -> { Log.println(Log.DEBUG, "SocketClient", "QuotesState.Disconnected!!!!!!!!!!!!!!!!!!!") }
+                        is QuotesState.Connected -> {
+                            Log.println(
+                                Log.DEBUG,
+                                "SocketClient",
+                                "QuotesState.Connected!!!!!!!!!!!!!!!!!!!"
+                            )
+                            _mainScreenState.update { state ->
+                                state.copy(isConnected = true, isLoading = false)
+                            }
+                        }
+
+                        is QuotesState.Disconnected -> {
+                            Log.println(
+                                Log.DEBUG,
+                                "SocketClient",
+                                "QuotesState.Disconnected!!!!!!!!!!!!!!!!!!!"
+                            )
+                            _mainScreenState.update { state ->
+                                state.copy(isConnected = false)
+                            }
+                        }
+
                         is QuotesState.Message -> {
                             val quotes = it.message
 
-                            _mainScreenState.update { list ->
+                            _mainScreenState.update { state ->
+                                val list = state.quotes
                                 val index = list.indexOfFirst { it.c == quotes.c }
                                 if (index == -1) {
                                     if (!quotes.c.isNullOrBlank()) {
-                                        list.toMutableList().apply { add(quotes) }
+                                        state.copy(
+                                            quotes = list.toMutableList().apply { add(quotes) })
                                     } else {
-                                        list
+                                        state.copy(quotes = list)
                                     }
                                 } else {
-                                    list.toMutableList()
-                                        .apply { set(index, list[index]
-                                            .copyWith(quotes)
-                                            .also { /*println(it)*/}) }
+                                    state.copy(quotes = list.toMutableList()
+                                        .apply {
+                                            set(
+                                                index, list[index]
+                                                    .copyWith(quotes)
+                                            )
+                                        })
                                 }
                             }
                         }
