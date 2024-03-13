@@ -14,9 +14,11 @@ import com.example.domain.repository.QuotesRepository
 import com.example.domain.request.Requests
 import com.example.domain.request.Tickers
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 
 class QuotesRepositoryImpl(private val socketClient: SocketClient, private val api: ApiService) :
@@ -31,17 +33,18 @@ class QuotesRepositoryImpl(private val socketClient: SocketClient, private val a
 
     override suspend fun fetchQuotes(): Flow<QuotesState> = callbackFlow {
 
-        val event = api.getTopSecurities(query = GetTopSecuritiesRequest())
-            .getOrNull()
-            ?.tickers
-            ?.let {
-                EventRequest(eventName = Requests.REALTIME_QUOTES(), tickers = it).toString()
-            }
-            ?: EventRequest(
-                eventName = Requests.REALTIME_QUOTES(),
-                tickers = Tickers.getAll()
-            ).toString()
-
+        val event = withContext(Dispatchers.IO) {
+            api.getTopSecurities(query = GetTopSecuritiesRequest())
+                .getOrNull()
+                ?.tickers
+                ?.let {
+                    EventRequest(eventName = Requests.REALTIME_QUOTES(), tickers = it).toString()
+                }
+                ?: EventRequest(
+                    eventName = Requests.REALTIME_QUOTES(),
+                    tickers = Tickers.getAll()
+                ).toString()
+        }
 
         socketClient.collect(event) {
             val messageState: QuotesState = when (it) {
