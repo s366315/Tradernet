@@ -14,7 +14,6 @@ import com.example.domain.repository.QuotesRepository
 import com.example.domain.request.Requests
 import com.example.domain.request.Tickers
 import com.google.gson.Gson
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -32,10 +31,7 @@ class QuotesRepositoryImpl(private val socketClient: SocketClient, private val a
 
     override suspend fun fetchQuotes(): Flow<QuotesState> = callbackFlow {
 
-        val event = async {
-            api.getTopSecurities(query = GetTopSecuritiesRequest())
-        }
-            .await()
+        val event = api.getTopSecurities(query = GetTopSecuritiesRequest())
             .getOrNull()
             ?.tickers
             ?.let {
