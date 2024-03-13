@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintSet
 import androidx.constraintlayout.compose.Dimension
@@ -41,6 +40,7 @@ import com.example.tradernet.ui.theme.green
 import com.example.tradernet.ui.theme.iconSize
 import com.example.tradernet.ui.theme.lazyColumnItemHeight
 import com.example.tradernet.ui.theme.lazyItemHorizontalPaddingEnd
+import com.example.tradernet.ui.theme.lazyItemHorizontalPaddingPriceSign
 import com.example.tradernet.ui.theme.lazyItemHorizontalPaddingStart
 import com.example.tradernet.ui.theme.percentBoxRadius
 import com.example.tradernet.ui.theme.red
@@ -209,7 +209,7 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
         Text(
             modifier = modifier
                 .layoutId(percentTextId)
-                .padding(horizontal = 5.dp),
+                .padding(horizontal = lazyItemHorizontalPaddingPriceSign),
             text = stringResource(
                 id = R.string.lazy_item_percent,
                 priceSignState,

@@ -6,6 +6,7 @@ val lazyColumnItemsGap = 6.dp
 val lazyColumnItemHeight = 52.dp
 val lazyItemHorizontalPaddingStart = 16.dp
 val lazyItemHorizontalPaddingEnd = 16.dp
+val lazyItemHorizontalPaddingPriceSign = 5.dp
 val iconSize = 26.dp
 val emptyIconSize = 1.dp
 val percentBoxRadius = 4.dp
