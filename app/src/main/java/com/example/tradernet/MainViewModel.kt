@@ -1,6 +1,5 @@
 package com.example.tradernet
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.entity.Quotes
@@ -44,28 +43,17 @@ class MainViewModel(private val repository: QuotesRepository) : ViewModel() {
                     _mainScreenState.update { state ->
                         state.copy(isConnected = false, isLoading = false)
                     }
-                    println("catch in MainViewModel")
                     it.printStackTrace()
                 }
                 .collect {
                     when (it) {
                         is QuotesState.Connected -> {
-                            Log.println(
-                                Log.DEBUG,
-                                "SocketClient",
-                                "QuotesState.Connected!!!!!!!!!!!!!!!!!!!"
-                            )
                             _mainScreenState.update { state ->
                                 state.copy(isConnected = true, isLoading = false)
                             }
                         }
 
                         is QuotesState.Disconnected -> {
-                            Log.println(
-                                Log.DEBUG,
-                                "SocketClient",
-                                "QuotesState.Disconnected!!!!!!!!!!!!!!!!!!!"
-                            )
                             _mainScreenState.update { state ->
                                 state.copy(isConnected = false)
                             }
