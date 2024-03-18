@@ -136,13 +136,15 @@ val constraints = ConstraintSet {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
+
+    val listItem = remember(item.increased, item.decreased) { item }
     val percentBoxAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
     val textColorState = remember { Animatable(if (item.positive) green else red) }
     var priceSignState by remember { mutableStateOf("") }
 
-    priceSignState = if (item.positive) stringResource(id = R.string.lazy_item_plus) else ""
+    priceSignState = if (listItem.positive) stringResource(id = R.string.lazy_item_plus) else ""
 
-    LaunchedEffect(item) {
+    LaunchedEffect(listItem) {
         if ((item.increased && !item.decreased) || (!item.increased && item.decreased)) {
             launch {
                 percentBoxAlpha.animateTo(1f, animationSpec = shortAlphaSpec)
@@ -169,14 +171,14 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
                     iconSize.value = emptyIconSize
                 }
             },
-            model = item.logoUrl,
+            model = listItem.logoUrl,
             contentDescription = null,
             modifier = modifier
                 .layoutId(logoId)
                 .size(iconSize.value)
         )
         Text(
-            text = item.c.orEmpty(),
+            text = listItem.c.orEmpty(),
             fontSize = regularFontSize,
             modifier = modifier
                 .layoutId(titleId)
@@ -186,8 +188,8 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
             modifier = modifier.layoutId(nameId),
             text = stringResource(
                 id = R.string.lazy_item_name,
-                item.ltr.orEmpty(),
-                item.name.orEmpty()
+                listItem.ltr.orEmpty(),
+                listItem.name.orEmpty()
             ),
             fontSize = smallFontSize,
             color = Color.Gray
@@ -199,8 +201,8 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
                 .alpha(percentBoxAlpha.value)
                 .layoutId(percentBoxId)
                 .background(
-                    color = if (item.decreased) red
-                    else if (item.increased) green
+                    color = if (listItem.decreased) red
+                    else if (listItem.increased) green
                     else Color.Transparent,
                     shape = RoundedCornerShape(percentBoxRadius)
                 )
@@ -213,7 +215,7 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
             text = stringResource(
                 id = R.string.lazy_item_percent,
                 priceSignState,
-                DecimalFormat(PERCENT_FORMAT).format(item.ltpDiffPercent)
+                DecimalFormat(PERCENT_FORMAT).format(listItem.ltpDiffPercent)
             ),
             color = textColorState.value,
             fontSize = regularFontSize,
@@ -225,9 +227,9 @@ fun LazyListItem(item: Quotes, modifier: Modifier = Modifier) {
             modifier = modifier.layoutId(pricesBoxId),
             text = stringResource(
                 id = R.string.lazy_item_price,
-                item.ltpFormatted,
+                listItem.ltpFormatted,
                 priceSignState,
-                item.ltpDiffFormatted
+                listItem.ltpDiffFormatted
             ),
             fontSize = smallFontSize,
             color = Color.Black,
